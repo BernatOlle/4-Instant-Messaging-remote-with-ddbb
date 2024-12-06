@@ -1,0 +1,18 @@
+# Ignore all build directories
+**/build/
+
+# Ignore build.xml files in any directory
+**/build.xml
+
+# Ignore NetBeans project files
+**/nbproject/
+
+# Ignore src/conf/ directories in any location
+**/src/conf/
+
+# Ignore dist directories
+**/dist/
+
+# Ignore WEB-INF directories
+**/WEB-INF/
+
