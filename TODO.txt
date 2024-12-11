@@ -1,0 +1,2 @@
+1. When close. will not unsubscribe the client and will not remove publishing profile.
+2. After logging into the system, the swingclient must retieve the user profile

@@ -39,9 +39,26 @@ public class TopicFacadeREST extends AbstractFacade<Topic> {
   @Produces({"application/xml", "application/json"})
   public Topic_check isTopic(Topic topic) {
     
-    // return if the topic is defined at the Topic table:
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    // Crear una instancia de respuesta
+    Topic_check topicCheck = new Topic_check();
+
+    // Verificar si el tema existe en la base de datos
+    if (topic != null && topic.getId() != null) {
+      Query query = em.createQuery("SELECT t FROM Topic t WHERE t.id = :id");
+      query.setParameter("id", topic.getId());
+      List<Topic> topics = query.getResultList();
+
+      if (!topics.isEmpty()) {
+        topicCheck.isOpen = true;
+        topicCheck.topic = topics.get(0);
+      } else {
+        topicCheck.isOpen = false;
+      }
+    } else {
+      topicCheck.isOpen = false;
+    }
+
+    return topicCheck;
 
   }
 

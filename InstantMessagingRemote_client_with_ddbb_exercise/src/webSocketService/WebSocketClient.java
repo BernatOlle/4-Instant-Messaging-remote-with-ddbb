@@ -44,7 +44,14 @@ public class WebSocketClient {
   public static synchronized void addSubscriber(Topic topic, Subscriber subscriber) {
     try {
       
-      //...
+      // Create a subscription request for adding
+      Subscription_request subscriptionRequest = new Subscription_request(topic, Subscription_request.Type.ADD);
+      String jsonRequest = new Gson().toJson(subscriptionRequest);
+      session.getBasicRemote().sendText(jsonRequest);
+
+      // Add the subscriber to the local map
+      subscriberMap.put(topic, subscriber);
+      System.out.println("Subscriber added for topic: " + topic.getName());
       
     } catch (Exception e) {
       e.printStackTrace();
@@ -53,9 +60,14 @@ public class WebSocketClient {
 
   public static synchronized void removeSubscriber(Topic topic) {
     try {
-      
-      //...
-      
+      // Create a subscription request for removing
+      Subscription_request subscriptionRequest = new Subscription_request(topic, Subscription_request.Type.REMOVE);
+      String jsonRequest = new Gson().toJson(subscriptionRequest);
+      session.getBasicRemote().sendText(jsonRequest);
+
+      // Remove the subscriber from the local map
+      subscriberMap.remove(topic);
+      System.out.println("Subscriber removed for topic: " + topic.getName());      
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -69,14 +81,32 @@ public class WebSocketClient {
 
     //ordinary message from topic:
     if (subs_close.cause==null) {
-      
-      //...
+      try {
+        Message message = gson.fromJson(json, Message.class);
+        Topic topic = message.getTopic();
+
+        // Notify the subscriber if one exists for the topic
+        Subscriber subscriber = subscriberMap.get(topic);
+        if (subscriber != null) {
+          subscriber.onMessage(message);
+        } else {
+          System.out.println("No subscriber found for topic: " + topic.getName());
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       
     }
     //ending subscription message:
     else {
       
-      //...
+      try {
+        Topic topic = subs_close.topic;
+        removeSubscriber(topic);
+        System.out.println("Topic closed: " + topic.getName() + ", Cause: " + subs_close.cause);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       
     } 
   }

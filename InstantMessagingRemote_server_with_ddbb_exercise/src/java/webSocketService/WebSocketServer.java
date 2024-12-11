@@ -50,7 +50,23 @@ public class WebSocketServer {
     // process the subscription request, from a given client, according
     // to how the websocket client has been programmed at the other end:
     // ...
-    throw new RuntimeException("To be completed by the student");
+    Topic topic = topicFacadeREST.find(s_req.topic);
+
+    // Verificar si el tema existe
+    if (topic == null) {
+      session.getBasicRemote().sendText("Error: El tema no existe.");
+      return;
+    }
+
+    // Agregar el tema a las suscripciones del cliente
+    List<Topic> subscribedTopics = subscriptions.getOrDefault(session, new ArrayList<>());
+    if (!subscribedTopics.contains(topic)) {
+      subscribedTopics.add(topic);
+      subscriptions.put(session, subscribedTopics);
+      session.getBasicRemote().sendText("Suscripción al tema " + topic.getName() + " completada.");
+    } else {
+      session.getBasicRemote().sendText("Ya estás suscrito al tema " + topic.getName() + ".");
+    }
 
   }
 
@@ -74,10 +90,14 @@ public class WebSocketServer {
     
     try {
       
-      // send the message to the clients subscribed to the
-      // message's topic and presently connected by a websocket:
-      // ...
-      throw new RuntimeException("To be completed by the student");
+      for (Map.Entry<Session, List<Topic>> entry : subscriptions.entrySet()) {
+        Session session = entry.getKey();
+        List<Topic> subscribedTopics = entry.getValue();
+
+        if (subscribedTopics.contains(topic) && session.isOpen()) {
+          session.getBasicRemote().sendText(json_message);
+        }
+      }
     
     } catch (Throwable e) {
       e.printStackTrace();
@@ -91,11 +111,19 @@ public class WebSocketServer {
     
     try {
       
-      // send the closing notification to the clients presently
-      // connected by a websocket and subscribed to the topic which
-      // is about to be closed:
-      // ...
-      throw new RuntimeException("To be completed by the student");
+      for (Map.Entry<Session, List<Topic>> entry : subscriptions.entrySet()) {
+        Session session = entry.getKey();
+        List<Topic> subscribedTopics = entry.getValue();
+
+        if (subscribedTopics.contains(topic) && session.isOpen()) {
+          session.getBasicRemote().sendText(json_subs_close);
+        }
+      }
+
+      // Eliminar el tema de todas las suscripciones
+      for (List<Topic> subscribedTopics : subscriptions.values()) {
+        subscribedTopics.remove(topic);
+      }
       
     } catch (Throwable e) {
       e.printStackTrace();

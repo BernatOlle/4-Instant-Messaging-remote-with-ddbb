@@ -37,12 +37,19 @@ public class UserFacadeREST extends AbstractFacade<User> {
   @Produces({"application/xml", "application/json"})
   public User create_and_return(User entity) {
     
-    // check out if the user with that login is defined at the User table,
-    // if that is the case, return that instance, otherwise save that new 
-    // user at the User table:
+    Query query = em.createQuery("SELECT u FROM User u WHERE u.login = :login");
     
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    query.setParameter("login", entity.getLogin());
+    List<User> users = query.getResultList();
+    if (!users.isEmpty()) {
+      // Si existe, devolver el usuario encontrado
+      return users.get(0);
+    } else {
+      // Si no existe, guardar el nuevo usuario y devolverlo
+      em.persist(entity);
+      em.flush(); // Forzar la sincronización con la base de datos para obtener el ID generado
+      return entity;
+    }
     
   }
   
@@ -51,12 +58,22 @@ public class UserFacadeREST extends AbstractFacade<User> {
   @Produces({"application/xml", "application/json"})
   @Consumes({"application/xml", "application/json"})
   public User login(Login_check login) {
-    System.out.println("login: "+login.login+", password: "+login.password);
+    System.out.println("Login: " + login.login + ", Password: " + login.password);
     
-    // check out if a user with that login and password is defined at the User table,
-    // return that user or null, accordingly:
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    // Verificar si existe un usuario con ese login y contraseña
+    Query query = em.createQuery("SELECT u FROM User u WHERE u.login = :login AND u.password = :password");
+    query.setParameter("login", login.login);
+    query.setParameter("password", login.password);
+    List<User> users = query.getResultList();
+    System.out.print(users);
+
+    if (!users.isEmpty()) {
+      // Devolver el usuario si coincide
+      return users.get(0);
+    } else {
+      // Devolver null si no se encuentra
+      return null;
+    }
     
   }
 
