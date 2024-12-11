@@ -56,6 +56,7 @@ public class TopicManagerStub implements TopicManager {
       subscriber.setTopic(topic);
       subscriber.setUser(user);
       Subscription_check s_c = apiREST_Subscriber.createSubscriber(subscriber);
+      System.out.print(s_c);
       if(s_c.result==Subscription_check.Result.OKAY){
         WebSocketClient.addSubscriber(topic, real_subscriber);
       }

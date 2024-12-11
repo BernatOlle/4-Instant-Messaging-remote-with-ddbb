@@ -39,17 +39,42 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
   @Consumes({"application/xml", "application/json"})
   @Produces({"application/xml", "application/json"})
   public Subscription_check check_to_create(Subscriber entity) {
-    
-    // first, check out if the topic from which to subscribe is defined at
-    // the Topic table, otherwise return the corresponding message:
-    
-    // ...
-    
-    // return a Subscription_check after saving the user as subscriber of the
-    // topic:
-    
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    // Create a response object
+    Subscription_check response = new Subscription_check();
+
+    // Check if the topic exists in the database
+    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.id = :topicId");
+    topicQuery.setParameter("topicId", entity.getTopic().getId());
+    List<Topic> topics = topicQuery.getResultList();
+
+    if (topics.isEmpty()) {
+      response.result = Subscription_check.Result.NO_TOPIC;
+      response.topic = (null);
+      return response;
+    }
+
+    // Check if the user is already subscribed to the topic
+    Query subscriberQuery = em.createQuery(
+      "SELECT s FROM Subscriber s WHERE s.user.id = :userId AND s.topic.id = :topicId"
+    );
+    subscriberQuery.setParameter("userId", entity.getUser().getId());
+    subscriberQuery.setParameter("topicId", entity.getTopic().getId());
+    List<Subscriber> subscribers = subscriberQuery.getResultList();
+
+    if (!subscribers.isEmpty()) {
+      response.result = Subscription_check.Result.OKAY;
+      response.topic = topics.get(0); // Return the topic as the user is already subscribed
+      return response;
+    }
+
+    // Save the subscription
+    em.persist(entity);
+    em.flush();
+
+    // Return a successful response
+    response.result = Subscription_check.Result.OKAY;
+    response.topic = topics.get(0);
+    return response;
     
   }
 
@@ -57,19 +82,43 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
   @Path("delete")
   @Consumes({"application/xml", "application/json"})
   public Subscription_check check_to_delete(Subscriber entity) {
-    
-    // first, check out if the topic from which to unsubscribe is defined at
-    // the Topic table, otherwise return the corresponding message:
-    
-    // ...
-    
-    // check out if the user was subscribed to the intended topic, otherwise
-    // return the corresponding message. Return the corresponding message
-    // after removing the user from been subscribed to that topic:
-    
-    // ...
-    throw new RuntimeException("To be completed by the student");
-    
+    // Create a response object
+    Subscription_check response = new Subscription_check();
+
+    // Check if the topic exists in the database
+    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.id = :topicId");
+    topicQuery.setParameter("topicId", entity.getTopic().getId());
+    List<Topic> topics = topicQuery.getResultList();
+
+    if (topics.isEmpty()) {
+      response.result = Subscription_check.Result.NO_TOPIC;
+      response.topic = null;
+      return response;
+    }
+
+    // Check if the user is subscribed to the topic
+    Query subscriberQuery = em.createQuery(
+      "SELECT s FROM Subscriber s WHERE s.user.id = :userId AND s.topic.id = :topicId"
+    );
+    subscriberQuery.setParameter("userId", entity.getUser().getId());
+    subscriberQuery.setParameter("topicId", entity.getTopic().getId());
+    List<Subscriber> subscribers = subscriberQuery.getResultList();
+
+    if (subscribers.isEmpty()) {
+      response.result = Subscription_check.Result.NO_SUBSCRIPTION;
+      response.topic = topics.get(0);
+      return response;
+    }
+
+    // Remove the subscription
+    Subscriber subscriber = subscribers.get(0);
+    em.remove(em.merge(subscriber));
+    em.flush();
+
+    // Return a successful response
+    response.result = Subscription_check.Result.OKAY;
+    response.topic = topics.get(0);
+    return response;
   }
 
   @POST
@@ -77,11 +126,13 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
   @Consumes({"application/xml", "application/json"})
   @Produces({"application/xml", "application/json"})
   public List<Subscriber> subscriptions(User entity) {
-    
-    // return the list of subscriptions of the requested user:
-    
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    Query query = em.createQuery("SELECT s FROM Subscriber s WHERE s.user.id = :userId");
+    query.setParameter("userId", entity.getId());
+
+    @SuppressWarnings("unchecked")
+    List<Subscriber> subscriptions = query.getResultList();
+
+    return subscriptions;
   }
 
   @Override
