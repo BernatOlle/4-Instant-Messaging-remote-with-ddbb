@@ -48,8 +48,28 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
     // the message, make a copy of the message and use both of them, one for each
     // action.
     
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    // Verificar si el tema está definido
+    Topic topic = entity.getTopic();
+    if (topic == null || em.find(Topic.class, topic.getId()) == null) {
+      throw new IllegalArgumentException("El tema asociado al mensaje no está definido.");
+    }
+
+    // Crear una copia del mensaje para guardar y otra para reenviar
+    Message messageToSave = new Message();
+    messageToSave.setContent(entity.getContent());
+    messageToSave.setTopic(topic);
+
+    em.persist(messageToSave);
+
+    // Usar WebSocketServer para reenviar el mensaje
+    Message messageToForward = new Message();
+    messageToForward.setContent(entity.getContent());
+    messageToForward.setTopic(topic);
+
+    WebSocketServer.notifyNewMessage( messageToForward);
+
+    // Confirmar la transacción
+    em.flush();
     
   }
 
@@ -59,10 +79,18 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
   @Produces({"application/xml", "application/json"})
   public List<Message> messagesFrom(Topic entity) {
     
-    // return all messages stored at the Message table for the intended topic.
-    
-    // ...
-    throw new RuntimeException("To be completed by the student");
+    if (entity == null || entity.getId() == null) {
+      throw new IllegalArgumentException("El tema proporcionado es inválido.");
+    }
+
+    // Consulta para obtener todos los mensajes del tema
+    Query query = em.createQuery("SELECT m FROM Message m WHERE m.topic.id = :topicId");
+    query.setParameter("topicId", entity.getId());
+
+    @SuppressWarnings("unchecked")
+    List<Message> messages = query.getResultList();
+
+    return messages;
     
   }
 

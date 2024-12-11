@@ -76,6 +76,8 @@ public class SwingClient {
         to_unsubscribe_button.addActionListener(new UnsubscribeHandler());
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
+        
+        
 
         JPanel buttonsPannel = new JPanel(new FlowLayout());
         buttonsPannel.add(show_topics_button);
@@ -99,7 +101,12 @@ public class SwingClient {
         topicsP.add(new JScrollPane(my_subscriptions_TextArea));
         topicsP.add(new JLabel("I'm Publisher of topic:"));
         topicsP.add(publisherComboBox);
-     
+        
+        // Information Panel
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.PAGE_AXIS));
+        infoPanel.add(new JLabel("Information:"));
+        infoPanel.add(new JScrollPane(info_TextArea));
 
         JPanel messagesPanel = new JPanel();
         messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.PAGE_AXIS));
@@ -107,9 +114,14 @@ public class SwingClient {
         messagesPanel.add(messages_TextArea);
         messagesPanel.add(new JScrollPane(messages_TextArea));
 
+       // SplitPane for Columns
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoPanel, messagesPanel);
+        splitPane.setDividerLocation(150); // Initial division point
+        splitPane.setResizeWeight(0.3); // Allocate 30% of space to the info panel
+
         Container mainPanel = frame.getContentPane();
         mainPanel.add(buttonsPannel, BorderLayout.PAGE_START);
-        mainPanel.add(messagesPanel, BorderLayout.CENTER);
+        mainPanel.add(splitPane, BorderLayout.CENTER); // Use SplitPane for the center
         mainPanel.add(argumentP, BorderLayout.PAGE_END);
         mainPanel.add(topicsP, BorderLayout.LINE_START);
 
@@ -213,7 +225,7 @@ public class SwingClient {
             Topic topic = new Topic(topicName);
             Subscriber subscriber = new SubscriberImpl(SwingClient.this);
             Subscription_check result = topicManager.subscribe(topic, subscriber);
-            System.out.print(my_subscriptions);
+            System.out.print("My subscriptions "+my_subscriptions+" "+result.result);
             if (result.result == Subscription_check.Result.OKAY) {
                 if (my_subscriptions.containsKey(topic)) {
                     info_TextArea.append("Already subcribed to topic: " + topicName + "\n");

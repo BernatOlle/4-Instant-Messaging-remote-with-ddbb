@@ -24,10 +24,10 @@ public class Client_Molly {
       public void run() {
         
         //the first time you have to create the user:        
-//        User user_molly = new entity.User();
-//        user_molly.setLogin("molly");
-//        user_molly.setPassword("1234");
-//        user_molly = apiREST_User.createUser(user_molly);
+        //User user_molly = new entity.User();
+        //user_molly.setLogin("molly");
+        //user_molly.setPassword("1234");
+        //user_molly = apiREST_User.createUser(user_molly);
         
         //now you only have to log into the system:
         Login_check login = new Login_check();
