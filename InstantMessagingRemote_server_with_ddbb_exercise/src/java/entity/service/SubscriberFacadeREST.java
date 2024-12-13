@@ -39,39 +39,45 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
   @Consumes({"application/xml", "application/json"})
   @Produces({"application/xml", "application/json"})
   public Subscription_check check_to_create(Subscriber entity) {
-    // Create a response object
+     // Crear objeto de respuesta
     Subscription_check response = new Subscription_check();
 
+    // Buscar el tema en la base de datos por su nombre
     Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.name = :topicName");
     topicQuery.setParameter("topicName", entity.getTopic().getName());
     List<Topic> topics = topicQuery.getResultList();
-    System.out.print(topics.get(0).getId());
     
+    // Verificar si el tema no existe
     if (topics.isEmpty()) {
       response.result = Subscription_check.Result.NO_TOPIC;
-      response.topic = (null);
+      response.topic = null;  // No hay tema para devolver
       return response;
     }
 
-    // Check if the user is already subscribed to the topic
+    // Verificar si el usuario ya está suscrito al tema
     Query subscriberQuery = em.createQuery(
       "SELECT s FROM Subscriber s WHERE s.user.id = :userId AND s.topic.id = :topicId"
     );
     subscriberQuery.setParameter("userId", entity.getUser().getId());
-    subscriberQuery.setParameter("topicId", entity.getTopic().getId());
+    subscriberQuery.setParameter("topicId", topics.get(0).getId());
     List<Subscriber> subscribers = subscriberQuery.getResultList();
 
     if (!subscribers.isEmpty()) {
+      // El usuario ya está suscrito, retornar respuesta con el tema
       response.result = Subscription_check.Result.OKAY;
-      response.topic = topics.get(0); // Return the topic as the user is already subscribed
+      response.topic = topics.get(0);  // Devolver el tema al que está suscrito
       return response;
     }
 
-    
+    // Si no está suscrito, crear una nueva suscripción
+    Subscriber newSubscriber = new Subscriber();
+    newSubscriber.setUser(entity.getUser());  // Asociar el usuario
+    newSubscriber.setTopic(topics.get(0));   // Asociar el tema
+    em.persist(newSubscriber);               // Persistir la nueva suscripción
 
-    // Return a successful response
+    // Devolver respuesta de suscripción exitosa
     response.result = Subscription_check.Result.OKAY;
-    response.topic = topics.get(0);
+    response.topic = topics.get(0);  // Retornar el tema al cual se suscribió
     return response;
     
   }
@@ -80,42 +86,51 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
   @Path("delete")
   @Consumes({"application/xml", "application/json"})
   public Subscription_check check_to_delete(Subscriber entity) {
-    // Create a response object
+    // Crear el objeto de respuesta
     Subscription_check response = new Subscription_check();
 
-    // Check if the topic exists in the database
+    // Buscar el tema en la base de datos por nombre
     Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.name = :topicName");
     topicQuery.setParameter("topicName", entity.getTopic().getName());
     List<Topic> topics = topicQuery.getResultList();
 
+    // Si el tema no existe, devolver error
     if (topics.isEmpty()) {
-      response.result = Subscription_check.Result.NO_TOPIC;
-      response.topic = null;
-      return response;
+        response.result = Subscription_check.Result.NO_TOPIC;
+        response.topic = null;
+        return response;
     }
 
-    // Check if the user is subscribed to the topic
+    // Buscar la suscripción del usuario al tema
     Query subscriberQuery = em.createQuery(
-      "SELECT s FROM Subscriber s WHERE s.user.id = :userId AND s.topic.id = :topicId"
+        "SELECT s FROM Subscriber s WHERE s.user.id = :userId AND s.topic.id = :topicId"
     );
     subscriberQuery.setParameter("userId", entity.getUser().getId());
-    subscriberQuery.setParameter("topicId", entity.getTopic().getId());
+    subscriberQuery.setParameter("topicId", topics.get(0).getId());
     List<Subscriber> subscribers = subscriberQuery.getResultList();
 
+    // Si no hay suscripciones, devolver error
     if (subscribers.isEmpty()) {
-      response.result = Subscription_check.Result.NO_SUBSCRIPTION;
-      response.topic = topics.get(0);
-      return response;
+        response.result = Subscription_check.Result.NO_SUBSCRIPTION;
+        response.topic = topics.get(0);
+        return response;
     }
 
-    // Remove the subscription
-    Subscriber subscriber = subscribers.get(0);
-    em.remove(em.merge(subscriber));
-    em.flush();
+    // Eliminar la suscripción
+    try {
+        Subscriber subscriber = subscribers.get(0);
+        em.remove(em.merge(subscriber)); // Asegurarse de que la entidad esté gestionada antes de eliminarla
 
-    // Return a successful response
-    response.result = Subscription_check.Result.OKAY;
-    response.topic = topics.get(0);
+        // Confirmar la eliminación
+        response.result = Subscription_check.Result.OKAY;
+        response.topic = topics.get(0);
+    } catch (Exception e) {
+        // Manejar errores durante la eliminación
+       
+        response.topic = topics.get(0);
+        e.printStackTrace(); // Opcional: registrar el error para depuración
+    }
+
     return response;
   }
 
