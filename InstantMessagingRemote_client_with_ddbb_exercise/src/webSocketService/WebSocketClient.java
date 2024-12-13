@@ -75,8 +75,10 @@ public class WebSocketClient {
 
   @OnMessage
   public void onMessage(String json) {
-
-    Gson gson = new Gson();
+      
+      
+    System.out.println("Receeived message: " + json);
+    Gson gson = new Gson();  
     Subscription_close subs_close = gson.fromJson(json, Subscription_close.class);
 
     //ordinary message from topic:
@@ -102,8 +104,11 @@ public class WebSocketClient {
       
       try {
         Topic topic = subs_close.topic;
-        removeSubscriber(topic);
-        System.out.println("Topic closed: " + topic.getName() + ", Cause: " + subs_close.cause);
+        Subscriber subscriber = subscriberMap.get(topic);
+        if (subscriber != null){
+            subscriber.onClose(subs_close);
+            System.out.println("Topic clossed: " + topic.getName() + ", Cause: " + subs_close.cause);
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }

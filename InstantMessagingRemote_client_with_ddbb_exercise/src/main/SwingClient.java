@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import publisher.Publisher;
+import publisher.PublisherStub;
 import subscriber.Subscriber;
 import topicmanager.TopicManager;
 import topicmanager.TopicManagerStub;
@@ -76,8 +77,6 @@ public class SwingClient {
         to_unsubscribe_button.addActionListener(new UnsubscribeHandler());
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
-        
-        
 
         JPanel buttonsPannel = new JPanel(new FlowLayout());
         buttonsPannel.add(show_topics_button);
@@ -101,7 +100,7 @@ public class SwingClient {
         topicsP.add(new JScrollPane(my_subscriptions_TextArea));
         topicsP.add(new JLabel("I'm Publisher of topic:"));
         topicsP.add(publisherComboBox);
-        
+
         // Information Panel
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.PAGE_AXIS));
@@ -114,7 +113,7 @@ public class SwingClient {
         messagesPanel.add(messages_TextArea);
         messagesPanel.add(new JScrollPane(messages_TextArea));
 
-       // SplitPane for Columns
+        // SplitPane for Columns
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoPanel, messagesPanel);
         splitPane.setDividerLocation(150); // Initial division point
         splitPane.setResizeWeight(0.3); // Allocate 30% of space to the info panel
@@ -133,9 +132,45 @@ public class SwingClient {
     }
 
     private void clientSetup() {
-        //this is where you restore the user profile:
+        // Restore subscriptions
+        List<entity.Subscriber> subscriptions = topicManager.mySubscriptions();
+        if (subscriptions != null && !subscriptions.isEmpty()) {
+            for (entity.Subscriber sub : subscriptions) {
+                Topic topic = sub.getTopic(); // Get the topic from the subscriber
+                
+                Subscriber subscriber = new SubscriberImpl(this); // Create a new Subscriber instance
+                my_subscriptions.put(topic, subscriber); // Add to the subscriptions map
+                my_subscriptions_TextArea.append(topic.name + "\n"); // Update the subscriptions display
+                WebSocketClient.addSubscriber(topic, subscriber);
+            }
+            info_TextArea.append("Restored " + my_subscriptions.size() + " subscriptions.\n");
+        } else {
+            info_TextArea.append("No subscriptions to restore.\n");
+        }
 
-        //...
+        // Restore publisher state
+        Publisher publisher = topicManager.publisherOf();
+        if (publisher != null) {
+            Topic topic = publisher.topic(); // Get the topic from the publisher
+            my_publishers.put(topic, publisher); // Add to the publishers map
+            publisherComboBox.addItem(topic); // Add the topic to the combo box
+            publisherTopic = topic; // Set the default publisher topic
+            publisherComboBox.setSelectedItem(publisherTopic); // Select it in the combo box
+            info_TextArea.append("Restored publisher for topic: " + topic.name + "\n");
+        } else {
+            info_TextArea.append("No publisher topics to restore.\n");
+        }
+
+        // Load all available topics
+        List<Topic> allTopics = topicManager.topics();
+        if (allTopics != null && !allTopics.isEmpty()) {
+            for (Topic topic : allTopics) {
+                topic_list_TextArea.append(topic.name + "\n"); // Add to the topics display
+            }
+            info_TextArea.append("Loaded " + allTopics.size() + " available topics.\n");
+        } else {
+            info_TextArea.append("No topics available to load.\n");
+        }
     }
 
     class showTopicsHandler implements ActionListener {
@@ -197,18 +232,23 @@ public class SwingClient {
                     publisherTopic = selectedTopic;
                     info_TextArea.append("You are now a publisher for the existing topic: " + topicName + "\n");
                     publisherComboBox.setSelectedItem(selectedTopic);
+
                 } else {
                     info_TextArea.append("Error: Failed to assign you as a publisher for the topic: " + topicName + "\n");
                 }
             } else {
+
                 // If the topic does not exist, create it and assign the user as its publisher
                 Publisher newPublisher = topicManager.addPublisherToTopic(selectedTopic);
                 if (newPublisher != null) {
+                    List<Topic> topicsList = topicManager.topics();
+                    selectedTopic.setId(topicsList.get(topicsList.size() - 1).getId());
                     publisherComboBox.addItem(selectedTopic);
                     my_publishers.put(selectedTopic, newPublisher);
                     publisherTopic = selectedTopic;
                     info_TextArea.append("Topic '" + topicName + "' was created, and you are now its publisher.\n");
                     publisherComboBox.setSelectedItem(selectedTopic);
+
                 } else {
                     info_TextArea.append("Error: Failed to create and assign you as a publisher for the topic: " + topicName + "\n");
                 }
@@ -225,7 +265,7 @@ public class SwingClient {
             Topic topic = new Topic(topicName);
             Subscriber subscriber = new SubscriberImpl(SwingClient.this);
             Subscription_check result = topicManager.subscribe(topic, subscriber);
-            System.out.print("My subscriptions "+my_subscriptions+" "+result.result);
+            System.out.print("My subscriptions " + my_subscriptions + " " + result.result);
             if (result.result == Subscription_check.Result.OKAY) {
                 if (my_subscriptions.containsKey(topic)) {
                     info_TextArea.append("Already subcribed to topic: " + topicName + "\n");
@@ -263,6 +303,7 @@ public class SwingClient {
             Subscription_check result = topicManager.unsubscribe(topic, subscriber);
 
             if (result.result == Subscription_check.Result.OKAY) {
+                System.out.print("unsubscribe");
                 my_subscriptions.remove(topic);
                 Subscription_close subs_close = new Subscription_close(topic, Subscription_close.Cause.SUBSCRIBER);
                 subscriber.onClose(subs_close);
@@ -299,7 +340,6 @@ public class SwingClient {
 
             publisher.publish(message);
             messages_TextArea.append("Message posted to topic '" + publisherTopic.name + "': " + content + "\n");
-           
 
         }
     }
@@ -308,12 +348,6 @@ public class SwingClient {
 
         public void actionPerformed(ActionEvent e) {
 
-            for (Topic t : my_subscriptions.keySet()) {
-                Subscriber subscriber = my_subscriptions.get(t);
-                topicManager.unsubscribe(t, subscriber);
-
-            }
-            topicManager.removePublisherFromTopic(publisherTopic);
             System.out.println("all users closed");
             System.exit(0);
         }

@@ -60,7 +60,7 @@ public class Topic implements Serializable {
 
   @Override
   public String toString() {
-    return "entity.Topic[ id=" + id + " ]";
+    return this.name;
   }
   
 }

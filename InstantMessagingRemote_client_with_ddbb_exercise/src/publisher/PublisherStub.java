@@ -14,6 +14,7 @@ public class PublisherStub implements Publisher {
 
   public void publish(Message message) {
     if (topic.equals(message.topic)) {
+      System.out.println(message.content);
       apiREST_Message.createMessage(message);
     }
   }

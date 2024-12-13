@@ -2,6 +2,7 @@ package webSocketService;
 
 import com.google.gson.Gson;
 import entity.Message;
+import entity.Subscriber;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -50,23 +51,30 @@ public class WebSocketServer {
     // process the subscription request, from a given client, according
     // to how the websocket client has been programmed at the other end:
     // ...
-    Topic topic = topicFacadeREST.find(s_req.topic);
+    List <Topic> topics = topicFacadeREST.findAll();
+    
+    if (s_req.type == Subscription_request.Type.ADD){
+  
+    
 
-    // Verificar si el tema existe
-    if (topic == null) {
-      session.getBasicRemote().sendText("Error: El tema no existe.");
-      return;
-    }
+        // Verificar si el tema existe
+        if (!topics.contains(s_req.topic)) {
+          session.getBasicRemote().sendText("Error: El tema no existe.");
+          return;
+        }
+        
 
-    // Agregar el tema a las suscripciones del cliente
-    List<Topic> subscribedTopics = subscriptions.getOrDefault(session, new ArrayList<>());
-    if (!subscribedTopics.contains(topic)) {
-      subscribedTopics.add(topic);
-      subscriptions.put(session, subscribedTopics);
-      session.getBasicRemote().sendText("Suscripción al tema " + topic.getName() + " completada.");
-    } else {
-      session.getBasicRemote().sendText("Ya estás suscrito al tema " + topic.getName() + ".");
-    }
+        // Agregar el tema a las suscripciones del cliente
+
+        List<Topic> subscribedTopics = subscriptions.get(session);
+        if (!subscribedTopics.contains(s_req.topic)) {
+          Subscriber subs = new Subscriber();
+          subs.setTopic(s_req.topic);
+          subscribedTopics.add(s_req.topic);
+          subscriptions.put(session, subscribedTopics);
+
+        } 
+        }
 
   }
 
@@ -85,16 +93,21 @@ public class WebSocketServer {
   }
 
   public static void notifyNewMessage(Message message) {
+     System.out.print("Hola2"+ message.getContent());
+     
     String json_message = new Gson().toJson(message);
+    System.out.print("Hola");
     Topic topic = message.getTopic();
     
     try {
       
       for (Map.Entry<Session, List<Topic>> entry : subscriptions.entrySet()) {
+          
         Session session = entry.getKey();
         List<Topic> subscribedTopics = entry.getValue();
 
         if (subscribedTopics.contains(topic) && session.isOpen()) {
+          System.out.print("message");
           session.getBasicRemote().sendText(json_message);
         }
       }

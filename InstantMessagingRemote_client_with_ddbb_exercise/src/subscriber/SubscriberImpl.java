@@ -28,6 +28,7 @@ public class SubscriberImpl implements Subscriber {
   }
 
   public void onClose(Subscription_close subs_close) {
+    System.out.print("Delete");
     if (subs_close.cause == Subscription_close.Cause.PUBLISHER) {
       messages_TextArea.append("Topic: " + subs_close.topic.name
         + " has been closed, no publishers left on that topic.\n");
