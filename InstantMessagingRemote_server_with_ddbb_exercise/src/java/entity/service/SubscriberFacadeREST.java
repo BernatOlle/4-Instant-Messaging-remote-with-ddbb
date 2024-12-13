@@ -42,11 +42,11 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
     // Create a response object
     Subscription_check response = new Subscription_check();
 
-    // Check if the topic exists in the database
-    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.id = :topicId");
-    topicQuery.setParameter("topicId", entity.getTopic().getId());
+    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.name = :topicName");
+    topicQuery.setParameter("topicName", entity.getTopic().getName());
     List<Topic> topics = topicQuery.getResultList();
-
+    System.out.print(topics.get(0).getId());
+    
     if (topics.isEmpty()) {
       response.result = Subscription_check.Result.NO_TOPIC;
       response.topic = (null);
@@ -67,9 +67,7 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
       return response;
     }
 
-    // Save the subscription
-    em.persist(entity);
-    em.flush();
+    
 
     // Return a successful response
     response.result = Subscription_check.Result.OKAY;
@@ -86,8 +84,8 @@ public class SubscriberFacadeREST extends AbstractFacade<Subscriber> {
     Subscription_check response = new Subscription_check();
 
     // Check if the topic exists in the database
-    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.id = :topicId");
-    topicQuery.setParameter("topicId", entity.getTopic().getId());
+    Query topicQuery = em.createQuery("SELECT t FROM Topic t WHERE t.name = :topicName");
+    topicQuery.setParameter("topicName", entity.getTopic().getName());
     List<Topic> topics = topicQuery.getResultList();
 
     if (topics.isEmpty()) {

@@ -67,8 +67,10 @@ public class TopicManagerStub implements TopicManager {
       entity.Subscriber subscriber = new entity.Subscriber();
       subscriber.setTopic(topic);
       subscriber.setUser(user);
+      System.out.print("unsubscribe2");
       Subscription_check s_c = apiREST_Subscriber.deleteSubscriber(subscriber);
       if(s_c.result==Subscription_check.Result.OKAY){
+        
         WebSocketClient.removeSubscriber(topic);
       }
       return s_c;

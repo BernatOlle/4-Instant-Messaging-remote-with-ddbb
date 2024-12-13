@@ -34,7 +34,6 @@ public class Client_Molly {
         login.login = "molly";
         login.password = "1234";
         User user_molly = apiREST_User.loginUser(login);
-        System.out.print(user_molly.getEmail());
         SwingClient client = new SwingClient(new TopicManagerStub(user_molly));
         client.createAndShowGUI();
       }

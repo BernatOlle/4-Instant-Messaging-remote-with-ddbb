@@ -261,8 +261,9 @@ public class SwingClient {
             }
 
             Subscription_check result = topicManager.unsubscribe(topic, subscriber);
-
+            
             if (result.result == Subscription_check.Result.OKAY) {
+                System.out.print("unsubscribe");
                 my_subscriptions.remove(topic);
                 Subscription_close subs_close = new Subscription_close(topic, Subscription_close.Cause.SUBSCRIBER);
                 subscriber.onClose(subs_close);

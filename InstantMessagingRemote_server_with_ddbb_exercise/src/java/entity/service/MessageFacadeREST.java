@@ -50,7 +50,7 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
     
     // Verificar si el tema está definido
     Topic topic = entity.getTopic();
-    if (topic == null || em.find(Topic.class, topic.getId()) == null) {
+    if (topic == null) {
       throw new IllegalArgumentException("El tema asociado al mensaje no está definido.");
     }
 
@@ -59,7 +59,7 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
     messageToSave.setContent(entity.getContent());
     messageToSave.setTopic(topic);
 
-    em.persist(messageToSave);
+    
 
     // Usar WebSocketServer para reenviar el mensaje
     Message messageToForward = new Message();
@@ -68,8 +68,7 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
 
     WebSocketServer.notifyNewMessage( messageToForward);
 
-    // Confirmar la transacción
-    em.flush();
+    
     
   }
 

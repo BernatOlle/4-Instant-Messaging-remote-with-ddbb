@@ -50,23 +50,23 @@ public class WebSocketServer {
     // process the subscription request, from a given client, according
     // to how the websocket client has been programmed at the other end:
     // ...
-    Topic topic = topicFacadeREST.find(s_req.topic);
+    List <Topic> topics = topicFacadeREST.findAll();
+  
+    
 
     // Verificar si el tema existe
-    if (topic == null) {
+    if (!topics.contains(s_req.topic)) {
       session.getBasicRemote().sendText("Error: El tema no existe.");
       return;
     }
 
     // Agregar el tema a las suscripciones del cliente
-    List<Topic> subscribedTopics = subscriptions.getOrDefault(session, new ArrayList<>());
-    if (!subscribedTopics.contains(topic)) {
-      subscribedTopics.add(topic);
+    List<Topic> subscribedTopics = subscriptions.get(session);
+    if (!subscribedTopics.contains(s_req.topic)) {
+      subscribedTopics.add(s_req.topic);
       subscriptions.put(session, subscribedTopics);
-      session.getBasicRemote().sendText("Suscripción al tema " + topic.getName() + " completada.");
-    } else {
-      session.getBasicRemote().sendText("Ya estás suscrito al tema " + topic.getName() + ".");
-    }
+      
+    } 
 
   }
 
@@ -95,6 +95,7 @@ public class WebSocketServer {
         List<Topic> subscribedTopics = entry.getValue();
 
         if (subscribedTopics.contains(topic) && session.isOpen()) {
+          System.out.print("message");
           session.getBasicRemote().sendText(json_message);
         }
       }
