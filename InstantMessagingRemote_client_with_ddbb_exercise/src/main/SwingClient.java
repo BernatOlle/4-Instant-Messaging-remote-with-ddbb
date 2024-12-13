@@ -6,6 +6,7 @@ import entity.Topic;
 import subscriber.SubscriberImpl;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -170,6 +171,31 @@ public class SwingClient {
             info_TextArea.append("Loaded " + allTopics.size() + " available topics.\n");
         } else {
             info_TextArea.append("No topics available to load.\n");
+        }
+        
+        messages_TextArea.setText("");
+        List<Message> all_messages = new ArrayList<Message>();
+        for (Topic t : my_subscriptions.keySet()) {
+            List<Message> messages = topicManager.messagesFrom(t);
+            // Ordering the messages
+            for (Message m : messages) {
+                boolean placed = false;
+                int pos = 0;
+                for (Message m2 : all_messages) {
+                    if (m.getId() >= m2.getId()) {
+                        all_messages.add(pos, m);
+                        placed = true;
+                        break;
+                    }
+                    pos++;
+                }
+                if (!placed) {
+                    all_messages.add(m);
+                }
+            }
+        }
+        for (Message m : all_messages) {
+            messages_TextArea.append(m.topic.name + ": " + m.content + "\n");
         }
     }
 
