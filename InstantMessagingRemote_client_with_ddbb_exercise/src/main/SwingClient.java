@@ -79,6 +79,14 @@ public class SwingClient {
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
 
+        publisherComboBox = new JComboBox<Topic>();
+        publisherComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                publisherTopic = (Topic) publisherComboBox.getSelectedItem();
+            }
+        });
+
         JPanel buttonsPannel = new JPanel(new FlowLayout());
         buttonsPannel.add(show_topics_button);
         buttonsPannel.add(new_publisher_button);
@@ -99,7 +107,7 @@ public class SwingClient {
         topicsP.add(new JLabel("My Subscriptions:"));
         topicsP.add(my_subscriptions_TextArea);
         topicsP.add(new JScrollPane(my_subscriptions_TextArea));
-        topicsP.add(new JLabel("I'm Publisher of topic:"));
+        topicsP.add(new JLabel("I'm Publisher of topics:"));
         topicsP.add(publisherComboBox);
 
         // Information Panel
