@@ -72,12 +72,29 @@ public class SwingClient {
         JButton to_post_an_event_button = new JButton("post an event");
         JButton to_close_the_app = new JButton("close app.");
 
+        JButton clear_info_button = new JButton("Clear Info"); // Clear Information
+        JButton clear_messages_button = new JButton("Clear Messages"); // Clear Messages
+          
         show_topics_button.addActionListener(new showTopicsHandler());
         new_publisher_button.addActionListener(new newPublisherHandler());
         new_subscriber_button.addActionListener(new newSubscriberHandler());
         to_unsubscribe_button.addActionListener(new UnsubscribeHandler());
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
+
+        clear_info_button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                info_TextArea.setText("");
+            }
+        });
+
+        clear_messages_button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                messages_TextArea.setText("");
+            }
+        });
 
         publisherComboBox = new JComboBox<Topic>();
         publisherComboBox.addActionListener(new ActionListener() {
@@ -115,12 +132,14 @@ public class SwingClient {
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.PAGE_AXIS));
         infoPanel.add(new JLabel("Information:"));
         infoPanel.add(new JScrollPane(info_TextArea));
+        infoPanel.add(clear_info_button); // Add Clear Info Button
 
         JPanel messagesPanel = new JPanel();
         messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.PAGE_AXIS));
         messagesPanel.add(new JLabel("Messages:"));
         messagesPanel.add(messages_TextArea);
         messagesPanel.add(new JScrollPane(messages_TextArea));
+        messagesPanel.add(clear_messages_button); // Add Clear Messages Button
 
         // SplitPane for Columns
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoPanel, messagesPanel);
