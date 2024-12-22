@@ -9,11 +9,14 @@ import util.Subscription_check;
 import entity.Topic;
 import util.Topic_check;
 import entity.User;
+import java.util.ArrayList;
 import java.util.List;
 import publisher.Publisher;
 import publisher.PublisherStub;
 import subscriber.Subscriber;
 import webSocketService.WebSocketClient;
+import java.util.List;
+
 
 public class TopicManagerStub implements TopicManager {
 
@@ -76,12 +79,18 @@ public class TopicManagerStub implements TopicManager {
       return s_c;
   }
 
-  public Publisher publisherOf() {
-    entity.Publisher publisher = apiREST_Publisher.PublisherOf(user);
-    if (publisher != null) {
-      return new PublisherStub(publisher.getTopic());
+  public List<Publisher> publisherOf() {
+    List<entity.Publisher> publishers = apiREST_Publisher.PublishersOf(user); // Get multiple publishers
+    if (publishers != null && !publishers.isEmpty()) {
+      // Optionally, return a list of publishers:
+      // Converting entity Publishers to stub Publishers and returning
+      List<Publisher> stubPublishers = new ArrayList<Publisher>();
+      for (entity.Publisher p : publishers) {
+        stubPublishers.add(new PublisherStub(p.getTopic()));
+      }
+      return stubPublishers;
     } else {
-      return null;
+      return null; // No publishers found for the user
     }
   }
 

@@ -150,14 +150,16 @@ public class SwingClient {
         }
 
         // Restore publisher state
-        Publisher publisher = topicManager.publisherOf();
-        if (publisher != null) {
-            Topic topic = publisher.topic(); // Get the topic from the publisher
-            my_publishers.put(topic, publisher); // Add to the publishers map
-            publisherComboBox.addItem(topic); // Add the topic to the combo box
-            publisherTopic = topic; // Set the default publisher topic
-            publisherComboBox.setSelectedItem(publisherTopic); // Select it in the combo box
-            info_TextArea.append("Restored publisher for topic: " + topic.name + "\n");
+        List<Publisher> publishers = topicManager.publisherOf();
+        if (publishers != null && !publishers.isEmpty()) {
+            for (Publisher publisher : publishers) {
+                Topic topic = publisher.topic(); // Get the topic from the publisher
+                my_publishers.put(topic, publisher); // Add to the publishers map
+                publisherComboBox.addItem(topic); // Add the topic to the combo box
+                publisherTopic = topic; // Set the default publisher topic
+                publisherComboBox.setSelectedItem(publisherTopic); // Select it in the combo box
+                info_TextArea.append("Restored publisher for topic: " + topic.name + "\n");
+            }
         } else {
             info_TextArea.append("No publisher topics to restore.\n");
         }

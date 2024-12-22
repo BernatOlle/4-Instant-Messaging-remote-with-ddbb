@@ -1,10 +1,13 @@
 package apiREST;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import entity.Publisher;
 import entity.User;
 import java.io.*;
+import java.lang.reflect.Type;
 import java.net.*;
+import java.util.List;
 
 public class apiREST_Publisher {
   public static void createPublisher(Publisher publisher) {
@@ -66,7 +69,7 @@ public class apiREST_Publisher {
     }
   }
   
-  public static Publisher PublisherOf(User user) {
+public static List<Publisher> PublishersOf(User user) {
     try {
       URL url = new URL(Cons.SERVER_REST+"/entity.publisher/publisherOf");
       HttpURLConnection ucon = (HttpURLConnection) url.openConnection();
@@ -85,8 +88,12 @@ public class apiREST_Publisher {
       out.flush();
       ucon.connect();
 
+      // Read the response
       BufferedReader in = new BufferedReader(new InputStreamReader(ucon.getInputStream()));
-      return gson.fromJson(in, Publisher.class);
+      Type listType = new TypeToken<List<Publisher>>() {}.getType();
+      List<Publisher> publishers = gson.fromJson(in, listType);
+
+      return publishers;
 
     } catch (Exception e) {
       e.printStackTrace();

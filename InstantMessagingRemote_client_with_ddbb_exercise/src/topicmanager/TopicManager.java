@@ -22,7 +22,7 @@ public interface TopicManager {
   void close();
     
   //to restore the user profile:  
-  Publisher               publisherOf();
+  List<Publisher>         publisherOf();
   List<entity.Subscriber> mySubscriptions();
   List<Message>           messagesFrom(Topic topic);
 }
