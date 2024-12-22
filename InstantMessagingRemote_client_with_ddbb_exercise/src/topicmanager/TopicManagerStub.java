@@ -39,11 +39,11 @@ public class TopicManagerStub implements TopicManager {
     return new PublisherStub(topic);
   }
 
-  public void removePublisherFromTopic(Topic topic) {
+  public boolean removePublisherFromTopic(Topic topic) {
     entity.Publisher publisher = new entity.Publisher();
     publisher.setTopic(topic);
     publisher.setUser(user);
-    apiREST_Publisher.deletePublisher(publisher);
+    return apiREST_Publisher.deletePublisher(publisher);
   }
 
   public Topic_check isTopic(Topic topic) {

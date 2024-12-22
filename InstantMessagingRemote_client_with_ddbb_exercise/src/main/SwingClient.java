@@ -74,13 +74,15 @@ public class SwingClient {
 
         JButton clear_info_button = new JButton("Clear Info"); // Clear Information
         JButton clear_messages_button = new JButton("Clear Messages"); // Clear Messages
-          
+        JButton delete_publisher_button = new JButton("Delete Publisher");
+
         show_topics_button.addActionListener(new showTopicsHandler());
         new_publisher_button.addActionListener(new newPublisherHandler());
         new_subscriber_button.addActionListener(new newSubscriberHandler());
         to_unsubscribe_button.addActionListener(new UnsubscribeHandler());
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
+        delete_publisher_button.addActionListener(new DeletePublisherHandler());
 
         clear_info_button.addActionListener(new ActionListener() {
             @Override
@@ -126,6 +128,7 @@ public class SwingClient {
         topicsP.add(new JScrollPane(my_subscriptions_TextArea));
         topicsP.add(new JLabel("I'm Publisher of topics:"));
         topicsP.add(publisherComboBox);
+        topicsP.add(delete_publisher_button); // Add the Delete button here
 
         // Information Panel
         JPanel infoPanel = new JPanel();
@@ -134,6 +137,7 @@ public class SwingClient {
         infoPanel.add(new JScrollPane(info_TextArea));
         infoPanel.add(clear_info_button); // Add Clear Info Button
 
+        // Messages Panel
         JPanel messagesPanel = new JPanel();
         messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.PAGE_AXIS));
         messagesPanel.add(new JLabel("Messages:"));
@@ -399,6 +403,36 @@ public class SwingClient {
         }
     }
 
+    class DeletePublisherHandler implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Ensure a topic is selected
+            if (publisherTopic == null) {
+                info_TextArea.append("Error: No topic selected for deletion.\n");
+                return;
+            }
+
+            // Remove the publisher for the selected topic
+            Publisher publisher = my_publishers.get(publisherTopic);
+            if (publisher != null) {
+                boolean result = topicManager.removePublisherFromTopic(publisherTopic);
+                if (result) {
+                    // Remove the topic from the publisher list and the combo box
+                    my_publishers.remove(publisherTopic);
+                    info_TextArea.append("You are no longer a publisher for topic: " + publisherTopic.name + "\n");
+                    publisherComboBox.removeItem(publisherTopic);
+                    publisherTopic = null; // Clear the current topic
+                    publisherComboBox.setSelectedItem(null); // Clear the current selection in the combobox
+                } else {
+                    info_TextArea.append("Error: Failed to remove publisher from topic: " + publisherTopic.name + "\n");
+                }
+            } else {
+                info_TextArea.append("Error: No publisher found for the selected topic.\n");
+            }
+        }
+    }    
+    
     class CloseAppHandler implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {

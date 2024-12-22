@@ -40,7 +40,7 @@ public class apiREST_Publisher {
     }
   }
 
-  public static void deletePublisher(Publisher publisher) {
+  public static boolean deletePublisher(Publisher publisher) {
     try {
       URL url = new URL(Cons.SERVER_REST+"/entity.publisher/delete");
       HttpURLConnection ucon = (HttpURLConnection) url.openConnection();
@@ -63,9 +63,10 @@ public class apiREST_Publisher {
       while ((line = in.readLine()) != null) {
         System.out.println(line);
       }
-
+      return true;
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
   }
   
