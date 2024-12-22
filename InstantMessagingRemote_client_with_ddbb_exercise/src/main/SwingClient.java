@@ -79,6 +79,14 @@ public class SwingClient {
         to_post_an_event_button.addActionListener(new postEventHandler());
         to_close_the_app.addActionListener(new CloseAppHandler());
 
+        publisherComboBox = new JComboBox<Topic>();
+        publisherComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                publisherTopic = (Topic) publisherComboBox.getSelectedItem();
+            }
+        });
+
         JPanel buttonsPannel = new JPanel(new FlowLayout());
         buttonsPannel.add(show_topics_button);
         buttonsPannel.add(new_publisher_button);
@@ -99,7 +107,7 @@ public class SwingClient {
         topicsP.add(new JLabel("My Subscriptions:"));
         topicsP.add(my_subscriptions_TextArea);
         topicsP.add(new JScrollPane(my_subscriptions_TextArea));
-        topicsP.add(new JLabel("I'm Publisher of topic:"));
+        topicsP.add(new JLabel("I'm Publisher of topics:"));
         topicsP.add(publisherComboBox);
 
         // Information Panel
@@ -150,14 +158,16 @@ public class SwingClient {
         }
 
         // Restore publisher state
-        Publisher publisher = topicManager.publisherOf();
-        if (publisher != null) {
-            Topic topic = publisher.topic(); // Get the topic from the publisher
-            my_publishers.put(topic, publisher); // Add to the publishers map
-            publisherComboBox.addItem(topic); // Add the topic to the combo box
-            publisherTopic = topic; // Set the default publisher topic
-            publisherComboBox.setSelectedItem(publisherTopic); // Select it in the combo box
-            info_TextArea.append("Restored publisher for topic: " + topic.name + "\n");
+        List<Publisher> publishers = topicManager.publisherOf();
+        if (publishers != null && !publishers.isEmpty()) {
+            for (Publisher publisher : publishers) {
+                Topic topic = publisher.topic(); // Get the topic from the publisher
+                my_publishers.put(topic, publisher); // Add to the publishers map
+                publisherComboBox.addItem(topic); // Add the topic to the combo box
+                publisherTopic = topic; // Set the default publisher topic
+                publisherComboBox.setSelectedItem(publisherTopic); // Select it in the combo box
+                info_TextArea.append("Restored publisher for topic: " + topic.name + "\n");
+            }
         } else {
             info_TextArea.append("No publisher topics to restore.\n");
         }

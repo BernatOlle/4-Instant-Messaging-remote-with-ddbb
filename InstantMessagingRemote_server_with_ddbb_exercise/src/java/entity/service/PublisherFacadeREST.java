@@ -60,26 +60,23 @@ public class PublisherFacadeREST extends AbstractFacade<Publisher> {
         // Assign the topic to the Publisher entity
         entity.setTopic(topic);
 
-        // Check if the user is already a publisher
+        // Check if the user already has a publisher for the same topic
         Query publisherQuery = em.createQuery(
-                "SELECT p FROM Publisher p WHERE p.user.id = :userId"
+                "SELECT p FROM Publisher p WHERE p.user.id = :userId AND p.topic.id = :topicId"
         );
         publisherQuery.setParameter("userId", entity.getUser().getId());
+        publisherQuery.setParameter("topicId", topic.getId());
         List<Publisher> publishers = publisherQuery.getResultList();
 
-        if (!publishers.isEmpty()) {
-            // Update the existing publisher's topic
-            Publisher existingPublisher = publishers.get(0);
-            existingPublisher.setTopic(topic);
-            em.merge(existingPublisher);
-        } else {
-            // Create a new publisher
+        if (publishers.isEmpty()) {
+            // Create a new publisher if the user doesn't already have one for this topic
             em.persist(entity);
+            em.flush(); // Ensure the publisher is saved
+        } else {
+            // TODO: Optionally handle the case where the user is already a publisher for this topic
         }
-
-        em.flush();
-
     }
+
 
     @POST
     @Path("delete")
@@ -128,20 +125,15 @@ public class PublisherFacadeREST extends AbstractFacade<Publisher> {
     @Path("publisherOf")
     @Consumes({"application/xml", "application/json"})
     @Produces({"application/xml", "application/json"})
-    public Publisher publisherOf(User entity) {
-        // Retrieve the publisher for the user
+    public List<Publisher> publisherOf(User entity) {
         Query publisherQuery = em.createQuery(
                 "SELECT p FROM Publisher p WHERE p.user.id = :userId"
         );
         publisherQuery.setParameter("userId", entity.getId());
         List<Publisher> publishers = publisherQuery.getResultList();
 
-        if (publishers.isEmpty()) {
-            return null;
-        }
-
-        return publishers.get(0);
-
+        // Return the list of publishers (or an empty list if none are found)
+        return publishers;
     }
 
     @Override

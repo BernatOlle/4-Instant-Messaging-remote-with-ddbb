@@ -43,9 +43,9 @@ public class TopicFacadeREST extends AbstractFacade<Topic> {
     Topic_check topicCheck = new Topic_check();
 
     // Verificar si el tema existe en la base de datos
-    if (topic != null && topic.getId() != null) {
-      Query query = em.createQuery("SELECT t FROM Topic t WHERE t.id = :id");
-      query.setParameter("id", topic.getId());
+    if (topic != null && topic.getName() != null) {
+      Query query = em.createQuery("SELECT t FROM Topic t WHERE t.name = :name");
+      query.setParameter("name", topic.getName());
       List<Topic> topics = query.getResultList();
 
       if (!topics.isEmpty()) {
